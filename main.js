@@ -64,6 +64,17 @@ function startQuiz() {
     const main = document.getElementById('main');
 
     main.innerHTML += `
+        <div id="timeContainer">
+            <div id="timer">
+                <div id="timerBar"></div>
+            </div>
+        </div>
+        
+    `
+
+    startTimer();
+
+    main.innerHTML += `
   <div id="quizContainer">
         <div class="quizCard">
             <p id="question">${questions[window.index].question}</p>
@@ -87,6 +98,23 @@ function startQuiz() {
         </div>
     </div>
   `
+}
+
+function startTimer() {
+    let width = 600;
+    let interval = setInterval(timer, 20);
+
+
+    function timer() {
+        if(width <= 0) {
+            document.getElementById("timer").style.backgroundColor = "red";
+            endQuiz();
+            clearInterval(interval);
+        } else {
+        width--;
+        document.getElementById("timerBar").style.width = width + "px";
+        }
+    }
 }
 
 function getNextQuestion() {
@@ -123,6 +151,7 @@ function getNextQuestion() {
              <div class="quizButtons">
                 <button type="button" class="button" onclick="getPreviousQuestion()">Wstecz</button>
              </div>
+             <button type="button" class="button" onclick="endQuiz()">Koniec</button>
         `
     } else {
         quizContainer.innerHTML += `
@@ -193,4 +222,64 @@ function onChangeInput(checkbox) {
 
     console.log('questions: ', questions);
 
+}
+
+function endQuiz() {
+    const main = document.getElementById("main");
+    let quizContainer = document.getElementById("quizContainer");
+    quizContainer.remove();
+    let correctAnswears = 0;
+
+    for (let i = 0; i < questions.length; i++) {
+        const correctAnswear = 
+        questions[i].responseA.selected === questions[i].responseA.correct && 
+        questions[i].responseB.selected === questions[i].responseB.correct && 
+        questions[i].responseC.selected === questions[i].responseC.correct;
+
+        if(correctAnswear) {
+            correctAnswears++;
+        }
+
+        const borderClass = correctAnswear ? 'correctAnswear' : 'wrongAnswear';
+
+        main.innerHTML += `
+  <div id="quizContainer">
+        <div class="quizCard ${borderClass}">
+            <p id="question">${questions[i].question}</p>
+            <div class="responsesContainer">
+                <div class="response">
+                    <input type="checkbox" class="responseInput" id="responseA" onchange="onChangeInput(this.id)" disabled>
+                    <label for="responseA">${questions[i].responseA.response}</label>
+                </div>
+                <div class="response">
+                    <input type="checkbox" class="responseInput" id="responseB" onchange="onChangeInput(this.id)" disabled>
+                    <label for="responseB">${questions[i].responseB.response}</label>
+                </div>
+                <div class="response">
+                    <input type="checkbox" class="responseInput" id="responseC" onchange="onChangeInput(this.id)" disabled>
+                    <label for="responseC">${questions[i].responseC.response}</label>
+                </div>
+            </div>
+        </div>
+    </div>
+  `
+
+    }
+
+    let gifSrc = '';
+    if(correctAnswears === 3) {
+        gifSrc = 'images/welldone.gif';
+    } else if(correctAnswears === 2) {
+        gifSrc = 'images/quitegood.gif';
+    } else {
+        gifSrc = 'images/bad.gif';
+    }
+
+    main.innerHTML += `
+        <div id="endQuizContainer">
+            <p>Zdobyłeś/Zdobyłaś ${correctAnswears}/${questions.length} punktów! <p>
+            <img src=${gifSrc}>
+        </div>
+
+    `
 }
